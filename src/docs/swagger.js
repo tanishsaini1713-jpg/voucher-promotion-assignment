@@ -11,6 +11,10 @@ const options = {
     },
     servers: [
       {
+        url: "https://voucher-promotion-assignment.onrender.com",
+        description: "Production server",
+      },
+      {
         url: "http://localhost:{port}",
         description: "Local server",
         variables: {

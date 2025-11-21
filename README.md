@@ -2,6 +2,8 @@
 
 Backend service for creating vouchers and promotions, applying discounts to orders, and exposing JWT-protected REST APIs. Includes rate limiting, Swagger docs, self-ping keep-alive, and Jest tests.
 
+**🌐 Production API:** [https://voucher-promotion-assignment.onrender.com](https://voucher-promotion-assignment.onrender.com)
+
 ## Features
 - JWT authentication with configurable credentials.
 - Vouchers and promotions CRUD with unique code enforcement.
@@ -46,14 +48,19 @@ npm start
 Console output shows service URL, Swagger endpoint, and rate-limiter settings.
 
 ## Swagger Docs
-- Interactive: `http://localhost:PORT/docs`
-- Raw JSON: `http://localhost:PORT/docs.json`
+- **Production:** [https://voucher-promotion-assignment.onrender.com/docs](https://voucher-promotion-assignment.onrender.com/docs)
+- **Local:** `http://localhost:PORT/docs`
+- **Raw JSON (Production):** [https://voucher-promotion-assignment.onrender.com/docs.json](https://voucher-promotion-assignment.onrender.com/docs.json)
+- **Raw JSON (Local):** `http://localhost:PORT/docs.json`
 
 ## Authentication Flow
 1. `POST /api/v1/auth/login` with `{ "username": AUTH_USERNAME, "password": AUTH_PASSWORD }`.
 2. Use the returned JWT in `Authorization: Bearer <token>` header for all other endpoints.
 
 ## Key Endpoints
+
+Base URL: `https://voucher-promotion-assignment.onrender.com` (production) or `http://localhost:PORT` (local)
+
 - `POST /api/v1/vouchers/add` – create voucher.
 - `GET /api/v1/vouchers/get/all` – list active vouchers.
 - `PUT /api/v1/vouchers/:id` / `DELETE /api/v1/vouchers/:id`.
