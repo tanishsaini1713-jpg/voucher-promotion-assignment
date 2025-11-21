@@ -42,11 +42,26 @@ exports.getVouchers = async (req, res) => {
     const today = new Date();
 
     const vouchers = await Voucher.find({
+      isActive: true,
       expirationDate: { $gte: today },
       $expr: { $lt: ["$usedCount", "$usageLimit"] } // Compare usedCount < usageLimit
     });
 
     res.status(200).json(vouchers);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+exports.getVoucherById = async (req, res) => {
+  try {
+    const voucher = await Voucher.findById(req.params.id);
+
+    if (!voucher) {
+      return res.status(404).json({ message: "Voucher not found" });
+    }
+
+    res.status(200).json(voucher);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

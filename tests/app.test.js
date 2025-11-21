@@ -86,7 +86,7 @@ describe("API routes", () => {
       });
 
       const response = await request(app)
-        .post("/api/v1/vouchers/add")
+        .post("/api/v1/vouchers")
         .set("Authorization", `Bearer ${authToken}`)
         .send({
           code: "SAVE10",
@@ -108,7 +108,7 @@ describe("API routes", () => {
       });
 
       const response = await request(app)
-        .post("/api/v1/vouchers/add")
+        .post("/api/v1/vouchers")
         .set("Authorization", `Bearer ${authToken}`)
         .send({
           code: "BLACKFRIDAY",
@@ -131,7 +131,7 @@ describe("API routes", () => {
       Voucher.find.mockResolvedValue(voucherList);
 
       const response = await request(app)
-        .get("/api/v1/vouchers/get/all")
+        .get("/api/v1/vouchers")
         .set("Authorization", `Bearer ${authToken}`);
 
       expect(response.status).toBe(200);
@@ -147,7 +147,7 @@ describe("API routes", () => {
       });
 
       const response = await request(app)
-        .post("/api/v1/promotions/add")
+        .post("/api/v1/promotions")
         .set("Authorization", `Bearer ${authToken}`)
         .send({
           code: "PROMO10",
@@ -187,6 +187,8 @@ describe("API routes", () => {
         usageLimit: 5,
         usedCount: 0,
         minOrderValue: 0,
+        isActive: true,
+        maxDiscount: null,
         save: jest.fn().mockResolvedValue(true),
       };
 
@@ -221,7 +223,9 @@ describe("API routes", () => {
           code: "SAVE10",
           order: {
             total: 100,
-            items: [],
+            items: [
+              { id: "item1", price: 50, quantity: 2 }
+            ],
           },
         });
 
@@ -253,7 +257,9 @@ describe("API routes", () => {
           code: "UNKNOWN",
           order: {
             total: 50,
-            items: [],
+            items: [
+              { id: "item1", price: 50, quantity: 1 }
+            ],
           },
         });
 

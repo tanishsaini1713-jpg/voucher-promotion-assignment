@@ -137,6 +137,42 @@ const options = {
 const swaggerSpec = swaggerJsdoc(options);
 
 swaggerSpec.paths = {
+  "/health": {
+    get: {
+      tags: ["Health"],
+      summary: "Health check endpoint",
+      description: "Returns server health status including database connection",
+      responses: {
+        200: {
+          description: "Server is healthy",
+          content: {
+            "application/json": {
+              schema: {
+                type: "object",
+                properties: {
+                  status: { type: "string", example: "ok" },
+                  timestamp: { type: "string", example: "2024-11-21T10:25:42.656Z" },
+                  uptime: { type: "number", example: 12345.67 },
+                  database: {
+                    type: "object",
+                    properties: {
+                      status: { type: "string", example: "connected" },
+                      connected: { type: "boolean", example: true },
+                    },
+                  },
+                  environment: { type: "string", example: "production" },
+                  version: { type: "string", example: "1.0.0" },
+                },
+              },
+            },
+          },
+        },
+        503: {
+          description: "Server is unhealthy",
+        },
+      },
+    },
+  },
   "/api/v1/auth/login": {
     post: {
       tags: ["Auth"],
@@ -182,10 +218,11 @@ swaggerSpec.paths = {
       },
     },
   },
-  "/api/v1/vouchers/add": {
+  "/api/v1/vouchers": {
     post: {
       tags: ["Vouchers"],
       summary: "Create a new voucher",
+      description: "Creates a new voucher with validation. Code is auto-generated if not provided.",
       security: [{ bearerAuth: [] }],
       requestBody: {
         required: true,
@@ -197,7 +234,31 @@ swaggerSpec.paths = {
       },
       responses: {
         201: {
-          description: "Voucher created",
+          description: "Voucher created successfully",
+          content: {
+            "application/json": {
+              schema: {
+                type: "object",
+                properties: {
+                  message: { type: "string", example: "Voucher created successfully" },
+                  voucher: {
+                    type: "object",
+                    properties: {
+                      _id: { type: "string", example: "692019ac9d53bced3a430293" },
+                      code: { type: "string", example: "SAVE10" },
+                      discountType: { type: "string", example: "percentage" },
+                      discountValue: { type: "number", example: 10 },
+                      expirationDate: { type: "string", format: "date-time" },
+                      usageLimit: { type: "number", example: 100 },
+                      usedCount: { type: "number", example: 0 },
+                      minOrderValue: { type: "number", example: 0 },
+                      isActive: { type: "boolean", example: true },
+                    },
+                  },
+                },
+              },
+            },
+          },
         },
         409: {
           description: "Duplicate code",
@@ -217,20 +278,57 @@ swaggerSpec.paths = {
         },
       },
     },
-  },
-  "/api/v1/vouchers/get/all": {
     get: {
       tags: ["Vouchers"],
       summary: "List active vouchers",
+      description: "Returns all active, non-expired vouchers that haven't reached usage limit",
       security: [{ bearerAuth: [] }],
       responses: {
         200: {
-          description: "Array of vouchers",
+          description: "Array of active vouchers",
+          content: {
+            "application/json": {
+              schema: {
+                type: "array",
+                items: {
+                  type: "object",
+                  properties: {
+                    _id: { type: "string" },
+                    code: { type: "string", example: "SAVE10" },
+                    discountType: { type: "string" },
+                    discountValue: { type: "number" },
+                    expirationDate: { type: "string", format: "date-time" },
+                    usageLimit: { type: "number" },
+                    usedCount: { type: "number" },
+                    minOrderValue: { type: "number" },
+                    isActive: { type: "boolean" },
+                  },
+                },
+              },
+            },
+          },
         },
       },
     },
   },
   "/api/v1/vouchers/{id}": {
+    get: {
+      tags: ["Vouchers"],
+      summary: "Get voucher by ID",
+      security: [{ bearerAuth: [] }],
+      parameters: [
+        {
+          in: "path",
+          name: "id",
+          required: true,
+          schema: { type: "string" },
+        },
+      ],
+      responses: {
+        200: { description: "Voucher details" },
+        404: { description: "Voucher not found" },
+      },
+    },
     put: {
       tags: ["Vouchers"],
       summary: "Update voucher",
@@ -273,10 +371,11 @@ swaggerSpec.paths = {
       },
     },
   },
-  "/api/v1/promotions/add": {
+  "/api/v1/promotions": {
     post: {
       tags: ["Promotions"],
       summary: "Create a promotion",
+      description: "Creates a new promotion with category/item eligibility rules",
       security: [{ bearerAuth: [] }],
       requestBody: {
         required: true,
@@ -292,8 +391,6 @@ swaggerSpec.paths = {
         400: { description: "Validation error" },
       },
     },
-  },
-  "/api/v1/promotions": {
     get: {
       tags: ["Promotions"],
       summary: "List active promotions",
@@ -304,6 +401,23 @@ swaggerSpec.paths = {
     },
   },
   "/api/v1/promotions/{id}": {
+    get: {
+      tags: ["Promotions"],
+      summary: "Get promotion by ID",
+      security: [{ bearerAuth: [] }],
+      parameters: [
+        {
+          in: "path",
+          name: "id",
+          required: true,
+          schema: { type: "string" },
+        },
+      ],
+      responses: {
+        200: { description: "Promotion details" },
+        404: { description: "Promotion not found" },
+      },
+    },
     put: {
       tags: ["Promotions"],
       summary: "Update promotion",

@@ -13,48 +13,103 @@ exports.applyVoucherOrPromotion = async (req, res) => {
 
     // Prevent re-using code in same order
     if (order.appliedCodes && order.appliedCodes.includes(code.toUpperCase())) {
-      return res
-        .status(400)
-        .json({ message: "This voucher/promotion has already been applied to this order" });
+      return res.status(400).json({ 
+        message: "This voucher/promotion has already been applied to this order",
+        code: "DISCOUNT_ALREADY_APPLIED"
+      });
     }
 
-    // Find voucher first
-    let discountObj = await Voucher.findOne({ code: code.toUpperCase() });
+    // Find voucher first (only active ones)
+    let discountObj = await Voucher.findOne({ 
+      code: code.toUpperCase(),
+      isActive: true
+    });
     let type = "voucher";
 
-    // If not found, check promotion
+    // If not found, check promotion (only active ones)
     if (!discountObj) {
-      discountObj = await Promotion.findOne({ code: code.toUpperCase() });
+      discountObj = await Promotion.findOne({ 
+        code: code.toUpperCase(),
+        isActive: true
+      });
       type = "promotion";
     }
 
     if (!discountObj) {
-      return res.status(404).json({ message: "Voucher/Promotion not found" });
+      return res.status(404).json({ 
+        message: "Voucher/Promotion not found",
+        code: "DISCOUNT_NOT_FOUND"
+      });
     }
 
     const now = new Date();
 
+    // Check if active
+    if (discountObj.isActive === false) {
+      return res.status(400).json({ 
+        message: `${type === "voucher" ? "Voucher" : "Promotion"} is not active`,
+        code: "DISCOUNT_INACTIVE"
+      });
+    }
+
+    // Start date check (for promotions)
+    if (type === "promotion" && discountObj.startDate && discountObj.startDate > now) {
+      return res.status(400).json({ 
+        message: "Promotion has not started yet",
+        code: "PROMOTION_NOT_STARTED"
+      });
+    }
+
     // Expiration check
     if (discountObj.expirationDate < now) {
-      return res.status(400).json({ message: "Voucher/Promotion expired" });
+      return res.status(400).json({ 
+        message: `${type === "voucher" ? "Voucher" : "Promotion"} expired`,
+        code: "DISCOUNT_EXPIRED",
+        expiredDate: discountObj.expirationDate
+      });
     }
 
     // Usage limit check
     if (discountObj.usedCount >= discountObj.usageLimit) {
-      return res.status(400).json({ message: "Usage limit exceeded" });
+      return res.status(400).json({ 
+        message: `${type === "voucher" ? "Voucher" : "Promotion"} usage limit reached`,
+        code: "USAGE_LIMIT_EXCEEDED",
+        usageLimit: discountObj.usageLimit,
+        usedCount: discountObj.usedCount
+      });
     }
 
     // Eligibility check
     let applicable = false;
 
     if (type === "voucher") {
-      if (!discountObj.minOrderValue || order.total >= discountObj.minOrderValue) {
-        applicable = true;
-      } else {
+      // Check minimum order value
+      if (discountObj.minOrderValue && order.total < discountObj.minOrderValue) {
         return res.status(400).json({
-          message: `Order total must be at least ${discountObj.minOrderValue} to use this voucher`
+          message: `Minimum order value not met. Order total must be at least ${discountObj.minOrderValue}`,
+          code: "MIN_ORDER_VALUE_NOT_MET",
+          required: discountObj.minOrderValue,
+          current: order.total
         });
       }
+
+      // Check applicable products (if specified)
+      if (discountObj.applicableProducts && discountObj.applicableProducts.length > 0) {
+        const orderItemIds = (order.items || []).map(item => item.id);
+        const hasApplicableProduct = orderItemIds.some(id => 
+          discountObj.applicableProducts.includes(id)
+        );
+        
+        if (!hasApplicableProduct) {
+          return res.status(400).json({
+            message: "Voucher not applicable to these products",
+            code: "VOUCHER_NOT_APPLICABLE_TO_PRODUCTS",
+            applicableProducts: discountObj.applicableProducts
+          });
+        }
+      }
+
+      applicable = true;
     }
 
     if (type === "promotion") {
@@ -68,9 +123,12 @@ exports.applyVoucherOrPromotion = async (req, res) => {
       );
 
       if (!applicable) {
-        return res
-          .status(400)
-          .json({ message: "Promotion not applicable to these items" });
+        return res.status(400).json({ 
+          message: "Promotion not applicable to these items or categories",
+          code: "PROMOTION_NOT_APPLICABLE",
+          eligibleCategories: eligibleCategories,
+          eligibleItems: eligibleItems
+        });
       }
     }
 
@@ -78,11 +136,24 @@ exports.applyVoucherOrPromotion = async (req, res) => {
     let discountAmount = 0;
     if (discountObj.discountType === "percentage") {
       discountAmount = (order.total * discountObj.discountValue) / 100;
-      const maxDiscount = order.total * 0.5; // max 50%
-      if (discountAmount > maxDiscount) discountAmount = maxDiscount;
     } else {
       discountAmount = discountObj.discountValue;
-      if (discountAmount > order.total * 0.5) discountAmount = order.total * 0.5;
+    }
+
+    // Apply maxDiscount if specified (from schema)
+    if (discountObj.maxDiscount !== null && discountObj.maxDiscount !== undefined) {
+      discountAmount = Math.min(discountAmount, discountObj.maxDiscount);
+    }
+
+    // Enforce 50% cap (business rule)
+    const maxDiscountCap = order.total * 0.5;
+    if (discountAmount > maxDiscountCap) {
+      discountAmount = maxDiscountCap;
+    }
+
+    // Ensure discount doesn't exceed order total
+    if (discountAmount > order.total) {
+      discountAmount = order.total;
     }
 
     // Increment used count

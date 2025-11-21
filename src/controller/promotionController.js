@@ -53,11 +53,27 @@ exports.getPromotions = async (req, res) => {
         const today = new Date();
 
         const promotions = await Promotion.find({
+            isActive: true,
+            startDate: { $lte: today },
             expirationDate: { $gte: today },
             $expr: { $lt: ["$usedCount", "$usageLimit"] }
         });
 
         res.status(200).json(promotions);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+exports.getPromotionById = async (req, res) => {
+    try {
+        const promotion = await Promotion.findById(req.params.id);
+
+        if (!promotion) {
+            return res.status(404).json({ message: "Promotion not found" });
+        }
+
+        res.status(200).json(promotion);
     } catch (error) {
         res.status(500).json({ message: error.message });
     }

@@ -1,0 +1,600 @@
+{
+	"info": {
+		"_postman_id": "voucher-promotion-api",
+		"name": "Voucher & Promotion Management API",
+		"description": "Complete API collection for Voucher & Promotion Management Service\n\n**Production URL:** https://voucher-promotion-assignment.onrender.com\n**Local URL:** http://localhost:5000\n\n**Authentication:**\n1. First, login via `/api/v1/auth/login` to get JWT token\n2. Copy the token from response\n3. Use it in Authorization header for all other requests: `Bearer <token>`",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Auth",
+			"item": [
+				{
+					"name": "Login",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    const jsonData = pm.response.json();",
+									"    pm.environment.set(\"auth_token\", jsonData.token);",
+									"    console.log(\"Token saved to environment\");",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"username\": \"admin\",\n    \"password\": \"supersecret\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/auth/login",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"auth",
+								"login"
+							]
+						},
+						"description": "Login with credentials to receive JWT token. Token is automatically saved to environment variable."
+					},
+					"response": [
+						{
+							"name": "Success",
+							"originalRequest": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"username\": \"admin\",\n    \"password\": \"supersecret\"\n}"
+								},
+								"url": {
+									"raw": "{{base_url}}/api/v1/auth/login",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"auth",
+										"login"
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"token\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...\",\n    \"expiresIn\": \"1h\"\n}"
+						}
+					]
+				}
+			]
+		},
+		{
+			"name": "Health",
+			"item": [
+				{
+					"name": "Health Check",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/health",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"health"
+							]
+						},
+						"description": "Check server health and database connection status"
+					}
+				}
+			]
+		},
+		{
+			"name": "Vouchers",
+			"item": [
+				{
+					"name": "Create Voucher",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{auth_token}}",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"code\": \"SAVE10\",\n    \"discountType\": \"percentage\",\n    \"discountValue\": 10,\n    \"expirationDate\": \"31-12-2025\",\n    \"usageLimit\": 100,\n    \"minOrderValue\": 50,\n    \"maxDiscount\": 20,\n    \"isActive\": true\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/vouchers",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"vouchers"
+							]
+						},
+						"description": "Create a new voucher. Code is auto-generated if not provided."
+					}
+				},
+				{
+					"name": "List All Vouchers",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{auth_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/vouchers",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"vouchers"
+							]
+						},
+						"description": "Get all active, non-expired vouchers"
+					}
+				},
+				{
+					"name": "Get Voucher by ID",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{auth_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/vouchers/:id",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"vouchers",
+								":id"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "692019ac9d53bced3a430293",
+									"description": "Voucher ID"
+								}
+							]
+						},
+						"description": "Get a specific voucher by its ID"
+					}
+				},
+				{
+					"name": "Update Voucher",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{auth_token}}",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"discountValue\": 15,\n    \"usageLimit\": 200\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/vouchers/:id",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"vouchers",
+								":id"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "692019ac9d53bced3a430293"
+								}
+							]
+						},
+						"description": "Update an existing voucher"
+					}
+				},
+				{
+					"name": "Delete Voucher",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{auth_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/vouchers/:id",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"vouchers",
+								":id"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "692019ac9d53bced3a430293"
+								}
+							]
+						},
+						"description": "Delete a voucher"
+					}
+				}
+			]
+		},
+		{
+			"name": "Promotions",
+			"item": [
+				{
+					"name": "Create Promotion",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{auth_token}}",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"code\": \"SUMMER20\",\n    \"eligibleCategories\": [\"Electronics\", \"Gadgets\"],\n    \"eligibleItems\": [\"item123\", \"item456\"],\n    \"discountType\": \"percentage\",\n    \"discountValue\": 20,\n    \"expirationDate\": \"31-12-2025\",\n    \"usageLimit\": 500,\n    \"startDate\": \"01-06-2025\",\n    \"autoApply\": false,\n    \"isActive\": true\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/promotions",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"promotions"
+							]
+						},
+						"description": "Create a new promotion with category/item eligibility"
+					}
+				},
+				{
+					"name": "List All Promotions",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{auth_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/promotions",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"promotions"
+							]
+						},
+						"description": "Get all active, non-expired promotions"
+					}
+				},
+				{
+					"name": "Get Promotion by ID",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{auth_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/promotions/:id",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"promotions",
+								":id"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "692019ac9d53bced3a430294"
+								}
+							]
+						},
+						"description": "Get a specific promotion by its ID"
+					}
+				},
+				{
+					"name": "Update Promotion",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{auth_token}}",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"discountValue\": 25,\n    \"usageLimit\": 1000\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/promotions/:id",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"promotions",
+								":id"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "692019ac9d53bced3a430294"
+								}
+							]
+						},
+						"description": "Update an existing promotion"
+					}
+				},
+				{
+					"name": "Delete Promotion",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{auth_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/promotions/:id",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"promotions",
+								":id"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "692019ac9d53bced3a430294"
+								}
+							]
+						},
+						"description": "Delete a promotion"
+					}
+				}
+			]
+		},
+		{
+			"name": "Orders",
+			"item": [
+				{
+					"name": "Apply Discount (Voucher)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{auth_token}}",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"code\": \"SAVE10\",\n    \"order\": {\n        \"total\": 100,\n        \"items\": [\n            {\n                \"id\": \"item123\",\n                \"name\": \"Laptop\",\n                \"category\": \"Electronics\",\n                \"price\": 800,\n                \"quantity\": 1\n            },\n            {\n                \"id\": \"item456\",\n                \"name\": \"T-Shirt\",\n                \"category\": \"Clothing\",\n                \"price\": 200,\n                \"quantity\": 1\n            }\n        ],\n        \"appliedCodes\": []\n    }\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/orders/apply-discount",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"orders",
+								"apply-discount"
+							]
+						},
+						"description": "Apply a voucher or promotion code to an order. Returns order with populated voucher/promotion details."
+					}
+				},
+				{
+					"name": "Apply Discount (Promotion)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{auth_token}}",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"code\": \"SUMMER20\",\n    \"order\": {\n        \"total\": 250,\n        \"items\": [\n            {\n                \"id\": \"item123\",\n                \"name\": \"Laptop\",\n                \"category\": \"Electronics\",\n                \"price\": 250,\n                \"quantity\": 1\n            }\n        ],\n        \"appliedCodes\": []\n    }\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/orders/apply-discount",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"orders",
+								"apply-discount"
+							]
+						},
+						"description": "Apply a promotion code to an order. Order must contain items matching eligible categories or items."
+					}
+				},
+				{
+					"name": "Apply Discount (New Route)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{auth_token}}",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"code\": \"SAVE10\",\n    \"order\": {\n        \"total\": 100,\n        \"items\": [\n            {\n                \"id\": \"item123\",\n                \"price\": 100,\n                \"quantity\": 1\n            }\n        ]\n    }\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/orders/:orderId/discounts/apply",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"orders",
+								":orderId",
+								"discounts",
+								"apply"
+							],
+							"variable": [
+								{
+									"key": "orderId",
+									"value": "temp-order-123"
+								}
+							]
+						},
+						"description": "Alternative RESTful route for applying discounts"
+					}
+				}
+			]
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "https://voucher-promotion-assignment.onrender.com",
+			"type": "string"
+		},
+		{
+			"key": "auth_token",
+			"value": "",
+			"type": "string"
+		}
+	]
+}
+

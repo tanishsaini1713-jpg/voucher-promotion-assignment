@@ -7,6 +7,7 @@ const voucherRoutes = require("./routes/voucherRoutes");
 const promotionRoutes = require("./routes/promotionRoutes");
 const applyDiscountRoutes = require("./routes/applyDiscountRoutes");
 const authRoutes = require("./routes/authRoutes");
+const healthRoutes = require("./routes/healthRoutes");
 
 function buildApp() {
   const app = express();
@@ -20,6 +21,7 @@ function buildApp() {
   app.use(apiRateLimiter);
   app.use("/docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
   app.get("/docs.json", (req, res) => res.json(swaggerSpec));
+  app.use("/health", healthRoutes);
   app.use("/api/v1/auth", authRoutes);
 
   const requireAuth = authenticate();

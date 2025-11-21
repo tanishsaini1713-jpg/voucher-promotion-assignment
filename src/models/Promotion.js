@@ -26,6 +26,14 @@ const promotionSchema = new mongoose.Schema(
       type: Number,
       required: true
     },
+    maxDiscount: {
+      type: Number,
+      default: null,
+    },
+    startDate: {
+      type: Date,
+      default: Date.now,
+    },
     expirationDate: {
       type: Date,
       required: true
@@ -37,6 +45,18 @@ const promotionSchema = new mongoose.Schema(
     usedCount: {
       type: Number,
       default: 0
+    },
+    usagePerUserLimit: {
+      type: Number,
+      default: null,
+    },
+    autoApply: {
+      type: Boolean,
+      default: false,
+    },
+    isActive: {
+      type: Boolean,
+      default: true,
     }
   },
   { timestamps: true }
