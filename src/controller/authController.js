@@ -34,12 +34,12 @@ exports.login = async (req, res) => {
     };
 
     const token = jwt.sign(payload, process.env.JWT_SECRET, {
-      expiresIn: process.env.JWT_EXPIRES_IN || "1h",
+      expiresIn: process.env.JWT_EXPIRES_IN ,
     });
 
     return res.status(200).json({
       token,
-      expiresIn: process.env.JWT_EXPIRES_IN || "1h",
+      expiresIn: process.env.JWT_EXPIRES_IN ,
     });
   } catch (error) {
     return res.status(500).json({ message: error.message });
