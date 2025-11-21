@@ -5,7 +5,7 @@ Backend service for creating vouchers and promotions, applying discounts to orde
 ## Features
 - JWT authentication with configurable credentials.
 - Vouchers and promotions CRUD with unique code enforcement.
-- Discount application endpoint with eligibility checks and capped discounts.
+- Discount application endpoint with eligibility checks, capped discounts (≤50%), and populated voucher/promotion references on the resulting order.
 - Rate limiting middleware.
 - Auto-generated Swagger docs (`/docs`).
 - Self-ping keep-alive for Render free tier.
@@ -20,7 +20,11 @@ Backend service for creating vouchers and promotions, applying discounts to orde
    ```bash
    npm install
    ```
-2. Create `.env`:
+2. Copy the sample env file and update values:
+   ```bash
+   cp env.example .env
+   ```
+3. Verify `.env` (or Render env vars) contains the following:
    ```
    PORT=5000
    MONGO_URI=mongodb+srv://...
@@ -67,6 +71,7 @@ Runs Jest suite covering auth, voucher, promotion, and order flows with mocked m
 ## Deployment Notes
 - Ensure `.env` values are set in production (Render) dashboard.
 - Keep `SELF_PING_ENABLED=true` and `SELF_PING_URL` pointing to the public base URL to prevent free-tier sleep.
+- Whitelist your hosting provider’s outbound IP/CIDR blocks (or use `0.0.0.0/0` temporarily) in MongoDB Atlas so the connection succeeds.
 - For multiple instances, consider replacing the in-memory rate limiter with a distributed store (Redis).
 
 ## Project Structure
@@ -76,11 +81,13 @@ src/
   controller/           Business logic per resource
   routes/               Route definitions
   models/               Mongoose schemas
+  services/             Shared helpers (code generation, date parsing, env validation)
   middlewares/          Rate limiter & JWT auth
   docs/swagger.js       OpenAPI spec
   utils/                Error helpers & self ping
 tests/
   app.test.js           Supertest suite
+env.example             Sample configuration template
 ```
 
 ## Troubleshooting
