@@ -19,6 +19,7 @@ jest.mock("../src/models/Promotion", () => ({
 
 jest.mock("../src/models/Order", () => ({
   create: jest.fn(),
+  findById: jest.fn(),
 }));
 
 const Voucher = require("../src/models/Voucher");
@@ -178,6 +179,7 @@ describe("API routes", () => {
   describe("Order API", () => {
     it("applies a voucher to an order", async () => {
       const voucherDoc = {
+        _id: "voucher123",
         code: "SAVE10",
         discountType: "percentage",
         discountValue: 10,
@@ -189,13 +191,27 @@ describe("API routes", () => {
       };
 
       Voucher.findOne.mockResolvedValue(voucherDoc);
-      Order.create.mockResolvedValue({
+      const createdOrder = {
         _id: "order1",
         items: [],
         total: 100,
         appliedCodes: ["SAVE10"],
         discountAmount: 10,
         finalTotal: 90,
+        appliedVoucher: "voucher123",
+      };
+
+      const populatedOrder = {
+        ...createdOrder,
+        appliedVoucher: { _id: "voucher123", code: "SAVE10" },
+        appliedPromotion: null,
+      };
+
+      const populateMock = jest.fn().mockResolvedValue(populatedOrder);
+
+      Order.create.mockResolvedValue(createdOrder);
+      Order.findById.mockReturnValue({
+        populate: populateMock,
       });
 
       const response = await request(app)
@@ -211,7 +227,19 @@ describe("API routes", () => {
 
       expect(response.status).toBe(200);
       expect(response.body.order.finalTotal).toBe(90);
+      expect(response.body.order.appliedVoucher.code).toBe("SAVE10");
       expect(voucherDoc.save).toHaveBeenCalled();
+      expect(Order.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          appliedVoucher: "voucher123",
+          appliedPromotion: undefined,
+        })
+      );
+      expect(Order.findById).toHaveBeenCalledWith("order1");
+      expect(populateMock).toHaveBeenCalledWith([
+        { path: "appliedVoucher" },
+        { path: "appliedPromotion" },
+      ]);
     });
 
     it("returns 404 when voucher or promotion not found", async () => {

@@ -1,11 +1,7 @@
 const Voucher = require("../models/Voucher");
 const Promotion = require("../models/Promotion");
 const Order = require("../models/Order");
-
-function convertToDate(ddmmyyyy) {
-  const [day, month, year] = ddmmyyyy.split("-");
-  return new Date(year, month - 1, day);
-}
+const { convertToDate } = require("../services");
 
 exports.applyVoucherOrPromotion = async (req, res) => {
   try {
@@ -99,12 +95,19 @@ exports.applyVoucherOrPromotion = async (req, res) => {
       total: order.total,
       appliedCodes: [...(order.appliedCodes || []), discountObj.code],
       discountAmount: discountAmount,
-      finalTotal: order.total - discountAmount
+      finalTotal: order.total - discountAmount,
+      appliedVoucher: type === "voucher" ? discountObj._id : undefined,
+      appliedPromotion: type === "promotion" ? discountObj._id : undefined,
     });
+
+    const populatedOrder = await Order.findById(orderRecord._id).populate([
+      { path: "appliedVoucher" },
+      { path: "appliedPromotion" },
+    ]);
 
     return res.status(200).json({
       message: "Discount applied successfully",
-      order: orderRecord,
+      order: populatedOrder || orderRecord,
       type: type,
       discountAmount: discountAmount,
       finalTotal: orderRecord.finalTotal

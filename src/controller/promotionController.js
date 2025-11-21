@@ -1,15 +1,6 @@
 const Promotion = require("../models/Promotion");
 const { handleDuplicateKey } = require("../utils/errorResponse");
-
-function generatePromotionCode(length = 8) {
-    return Math.random().toString(36).substring(2, 2 + length).toUpperCase();
-}
-
-function convertToDate(ddmmyyyy) {
-    const [day, month, year] = ddmmyyyy.split("-");
-    return new Date(year, month - 1, day);
-}
-
+const { generatePromotionCode, convertToDate } = require("../services");
 
 exports.createPromotion = async (req, res) => {
     try {

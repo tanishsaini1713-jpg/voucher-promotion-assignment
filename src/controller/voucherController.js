@@ -1,14 +1,6 @@
 const Voucher = require("../models/Voucher");
 const { handleDuplicateKey } = require("../utils/errorResponse");
-
-function generateVoucherCode(length = 8) {
-    return Math.random().toString(36).substring(2, 2 + length).toUpperCase();
-}
-function convertToDate(ddmmyyyy) {
-    const [day, month, year] = ddmmyyyy.split("-");
-    return new Date(year, month - 1, day);
-}
-
+const { generateVoucherCode, convertToDate } = require("../services");
 
 exports.createVoucher = async (req, res) => {
     try {

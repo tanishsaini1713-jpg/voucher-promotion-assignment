@@ -12,9 +12,19 @@ const orderSchema = new mongoose.Schema(
   {
     items: [orderItemSchema],
     total: { type: Number, required: true },
-    appliedCodes: { type: [String], default: [] }, // vouchers/promotions applied
+    appliedCodes: { type: [String], default: [] }, // voucher/promo codes applied
+    appliedVoucher: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Voucher",
+      default: null,
+    },
+    appliedPromotion: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Promotion",
+      default: null,
+    },
     discountAmount: { type: Number, default: 0 },
-    finalTotal: { type: Number, required: true }
+    finalTotal: { type: Number, required: true },
   },
   { timestamps: true }
 );

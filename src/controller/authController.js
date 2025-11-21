@@ -1,15 +1,5 @@
 const jwt = require("jsonwebtoken");
-
-function validateEnvConfig() {
-  const requiredVars = ["JWT_SECRET", "AUTH_USERNAME", "AUTH_PASSWORD"];
-  const missing = requiredVars.filter((name) => !process.env[name]);
-
-  if (missing.length) {
-    throw new Error(
-      `Auth configuration missing environment variables: ${missing.join(", ")}`
-    );
-  }
-}
+const { validateEnvConfig } = require("../services");
 
 exports.login = async (req, res) => {
   try {
